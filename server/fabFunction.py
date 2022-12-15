@@ -1,6 +1,8 @@
 import fabric
 import os
 import time
+from pathlib import Path
+
 
 clientConfig = fabric.Config(overrides = { 'run': {'in_stream': False }, 'sudo': {'password': 'wjdqh'} } )
 
@@ -20,7 +22,7 @@ def resetClient():
     global clientList,clientConnection,clientGroup
     clientList, clientConnection, clientGroup = [], [], []
 
-    folder = '/home/ubuntu/student/'
+    folder = '/Manager/'
     createDirectory(folder)
     
     print('===== 클라이언트 연결 리셋 시작 =====')
@@ -36,8 +38,12 @@ def checkIP():
     
     tclientList, tclientConnection, tclientGroup = [], [], []
 
-    folder = '/home/ubuntu/student/'
-    createDirectory(folder)
+    folder = '/Manager/students/'
+    try:
+        createDirectory(folder)
+    except:
+        pass
+
     allIP = os.listdir(folder)
     
     # 클라이언트와 최근 7초 이내 통신이 있었는지 확인.
@@ -46,10 +52,12 @@ def checkIP():
         fileGenTime = int(os.path.getctime(folder + ip))
         diff = now - fileGenTime
 
-        if diff<=7:
-            tclientList.append(ip[:-3])
-        else:
-            os.remove(folder+ip)
+        tclientList.append(ip[:-3])
+#        if diff<=7:
+#            tclientList.append(ip[:-3])
+#        else:
+#            os.remove(folder+ip)
+            
 
     tclientList.sort(key=lambda x: int(x[x.rfind('.')+1:]))
     
@@ -58,7 +66,7 @@ def checkIP():
                 
     for conIP in tclientList:
         try:
-            tclientConnection.append(fabric.Connection(host=conIP, user='ubuntu', port=22, connect_kwargs={'password': 'wjdqh'}, config=clientConfig))
+            tclientConnection.append(fabric.Connection(host=conIP, user='stu', port=22, connect_kwargs={'password': 'wjdqh'}, config=clientConfig))
         except:
             print('[Error] 클라이언트 연결중 오류가 발생하였습니다! -',conIP)
 
@@ -132,22 +140,27 @@ def sudoAll(cmd):
 
 def transferAll(filename):
     global clientGroup
-    foldername = '/home/ubuntu/Desktop/과제제출/'
+    clientFoldername = Path('c:\\Users\\stu\\Desktop\\')
+    filename = Path(filename)
+    print(clientFoldername)
+    print(filename)
+
     print('===== 모든 클라이언트 파일 전송 시작 =====')
-    try:
-        clientGroup.put(filename, foldername)
-    except:
-        print('[Error] 파일 전송 중 오류가 발생하였습니다. -', filename)
+#    try:
+    clientGroup.put(filename, clientFoldername)
+#    except:
+#        print('[Error] 파일 전송 중 오류가 발생하였습니다. -', filename)
     print('===== 모든 클라이언트 파일 전송 완료 =====')
 
 
 def transferSel(filename, client):
-    foldername = '/home/ubuntu/Desktop/과제제출/'
+    clientFoldername = 'c:\\Users\\stu\\Desktop\\과제제출\\'
+    filename = Path(filename)
 
     print('===== 선택된 클라이언트 파일 전송 시작 =====')
     print(filename,'-->', client)
     try:
-        client.put(filename, foldername)
+        client.put(filename, clientFoldername)
     except:
         print('[Error] 파일 전송 중 문제가 발생하였습니다!')
     print('===== 선택된 클라이언트 파일 전송 완료 =====')
@@ -156,16 +169,17 @@ def transferSel(filename, client):
 def getFileSel(ip, client):
     print('===== 선택된 클라이언트 파일 회수 시작 =====')
     print(ip,'--> Server')
-    foldername = '/home/ubuntu/Desktop/과제제출/'
+    clientFoldername = 'c:\\Users\\stu\\Desktop\\과제제출\\'
+    serverFoldername = 'c:\\Users\\bsg\\Desktop\\과제제출\\'
     try:
-        output = client.run('ls -1 '+foldername)
+        output = client.run('dir/B '+clientFoldername)
         files = output.stdout.strip().split('\n')
         for file in files:
             try:
                 if file!='':
-                    client.get(foldername+file, foldername+ip+'_'+file)
+                    client.get(clientFoldername+file, serverFoldername+ip+'_'+file)
                 else:
-                    client.get(foldername+file, foldername+ip+'_파일없음')
+                    client.get(clientFoldername+file, serverFoldername+ip+'_파일없음')
             except:
                 pass
     except:
@@ -177,19 +191,20 @@ def getFileSel(ip, client):
 def getFileAll():
     global clientList,clientConnection
     print('===== 모든 클라이언트 파일 회수 시작 =====')
-    foldername = '/home/ubuntu/Desktop/과제제출/'
+    clientFoldername = 'c:\\Users\\stu\\Desktop\\과제제출\\'
+    serverFoldername = 'c:\\Users\\bsg\\Desktop\\과제제출\\'
 
     for idx,client in enumerate(clientConnection):
         print(clientList[idx],'--> Server')
         try:
-            result = client.run('ls -1 '+foldername)
+            result = client.run('dir/B '+clientFoldername)
             allfiles = result.stdout.strip().split('\n')
             for file in allfiles:
                 try:
                     if file!='':
-                        client.get(foldername+file, foldername+clientList[idx]+'_'+file)
+                        client.get(clientFoldername+file, serverFoldername+clientList[idx]+'_'+file)
                     else:
-                        client.get(foldername+file, foldername+clientList[idx]+'_파일없음(미제출)')
+                        client.get(clientFoldername+file, serverFoldername+clientList[idx]+'_파일없음(미제출)')
                 except:
                     pass
         except:

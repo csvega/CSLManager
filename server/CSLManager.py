@@ -140,7 +140,7 @@ class CSLManagerApp:
         self.entry1.delete(0, tk.END)
 
     def selectFileFunc(self):
-        self.filename = filedialog.askopenfilename(initialdir='/home/ubuntu/', title='파일 선택')
+        self.filename = filedialog.askopenfilename(initialdir='c:\\Users\\bsg\\Downloads\\', title='파일 선택')
         print(self.filename)
         self.entry2.delete(0, tk.END)
         self.entry2.insert(0, self.filename)
