@@ -1,7 +1,7 @@
 import fabric
 import os
 import time
-from pathlib import Path
+from pathlib import WindowsPath
 
 
 clientConfig = fabric.Config(overrides = { 'run': {'in_stream': False }, 'sudo': {'password': 'wjdqh'} } )
@@ -22,7 +22,7 @@ def resetClient():
     global clientList,clientConnection,clientGroup
     clientList, clientConnection, clientGroup = [], [], []
 
-    folder = '/Manager/'
+    folder = WindowsPath('C:\\Manager\\')
     createDirectory(folder)
     
     print('===== 클라이언트 연결 리셋 시작 =====')
@@ -38,7 +38,7 @@ def checkIP():
     
     tclientList, tclientConnection, tclientGroup = [], [], []
 
-    folder = '/Manager/students/'
+    folder = 'C:\\Manager\\students\\'
     try:
         createDirectory(folder)
     except:
@@ -140,21 +140,23 @@ def sudoAll(cmd):
 
 def transferAll(filename):
     global clientGroup
-    clientFoldername = Path('c:\\Users\\stu\\Desktop\\')
-    filename = Path(filename)
+    clientFoldername = r'C:/Users/stu/Desktop/'
+    #filename = filename
+
     print(clientFoldername)
     print(filename)
 
     print('===== 모든 클라이언트 파일 전송 시작 =====')
 #    try:
-    clientGroup.put(filename, clientFoldername)
+    temp=clientGroup.put(filename, clientFoldername)
+    print(temp.stderr)
 #    except:
 #        print('[Error] 파일 전송 중 오류가 발생하였습니다. -', filename)
     print('===== 모든 클라이언트 파일 전송 완료 =====')
 
 
 def transferSel(filename, client):
-    clientFoldername = 'c:\\Users\\stu\\Desktop\\과제제출\\'
+    clientFoldername = 'C:\\Users\\stu\\Desktop\\과제제출\\'
     filename = Path(filename)
 
     print('===== 선택된 클라이언트 파일 전송 시작 =====')
@@ -169,8 +171,8 @@ def transferSel(filename, client):
 def getFileSel(ip, client):
     print('===== 선택된 클라이언트 파일 회수 시작 =====')
     print(ip,'--> Server')
-    clientFoldername = 'c:\\Users\\stu\\Desktop\\과제제출\\'
-    serverFoldername = 'c:\\Users\\bsg\\Desktop\\과제제출\\'
+    clientFoldername = 'C:\\Users\\stu\\Desktop\\과제제출\\'
+    serverFoldername = 'C:\\Users\\bsg\\Desktop\\과제제출\\'
     try:
         output = client.run('dir/B '+clientFoldername)
         files = output.stdout.strip().split('\n')
@@ -191,22 +193,31 @@ def getFileSel(ip, client):
 def getFileAll():
     global clientList,clientConnection
     print('===== 모든 클라이언트 파일 회수 시작 =====')
-    clientFoldername = 'c:\\Users\\stu\\Desktop\\과제제출\\'
-    serverFoldername = 'c:\\Users\\bsg\\Desktop\\과제제출\\'
+    clientFoldername = "C:\\Users\\stu\\Desktop\\과제제출\\"
+    serverFoldername = "C:\\Users\\bsg\\Desktop\\과제제출\\"
 
     for idx,client in enumerate(clientConnection):
         print(clientList[idx],'--> Server')
         try:
             result = client.run('dir/B '+clientFoldername)
+            
             allfiles = result.stdout.strip().split('\n')
+            print('ALL'+allfiles)
+
             for file in allfiles:
+                print(clientFoldername+file)
+                print(serverFoldername+clientList[idx]+'_'+file)
                 try:
                     if file!='':
-                        client.get(clientFoldername+file, serverFoldername+clientList[idx]+'_'+file)
+                        print(33333)
+                        temp=client.get('"'+clientFoldername+file+'"', serverFoldername+clientList[idx]+'_'+file)
+                        print(temp.stderr)
                     else:
-                        client.get(clientFoldername+file, serverFoldername+clientList[idx]+'_파일없음(미제출)')
+                        print(4444)
+                        temp=client.get('"'+clientFoldername+file+'"', '"'+serverFoldername+clientList[idx]+'_파일없음(미제출)'+'"')
+                        print(temp.stderr)
                 except:
-                    pass
+                    print('[Error] 파일을 가져오는 중 문제가 발생했습니다.', temp.stderr)
         except:
             print('[Error] 폴더를 찾을 수 없습니다!')
 

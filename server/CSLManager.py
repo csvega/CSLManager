@@ -78,7 +78,7 @@ class CSLManagerApp:
         self.btnSiteList = tk.Button(self.master, text='목록 열기', command=self.siteListFunc)
         self.btnSiteList.place(x=100, y=270)
 
-        self.btnSiteRule = tk.Button(self.master, text='차단 실행', command=ff.runSiteRule)
+        self.btnSiteRule = tk.Button(self.master, text='종료', command=ff.runSiteRule)
         self.btnSiteRule.place(x=200, y=270)
 
     def confirm(self,msg):
